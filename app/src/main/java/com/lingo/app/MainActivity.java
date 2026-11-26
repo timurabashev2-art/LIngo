@@ -1,0 +1,44 @@
+package com.lingo.app;
+
+import android.app.*;
+import android.os.Bundle;
+import android.content.*;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.*;
+import java.util.*;
+
+public class MainActivity extends Activity {
+    final int BG=Color.rgb(12,14,35), CARD=Color.rgb(29,32,67), PURPLE=Color.rgb(137,94,255),
+        WHITE=Color.WHITE, MUTED=Color.rgb(190,192,220);
+    LinearLayout root; SharedPreferences prefs;
+    String selected="Английский", page="welcome";
+    int score=0, streak=0, question=0, correct=0;
+    String[] languages={"Африкаанс","Албанский","Амхарский","Арабский","Армянский","Азербайджанский","Баскский","Белорусский","Бенгальский","Болгарский","Боснийский","Бирманский","Каталанский","Китайский (мандарин)","Хорватский","Чешский","Датский","Нидерландский","Английский","Эстонский","Финский","Французский","Грузинский","Немецкий","Греческий","Гуджарати","Иврит","Хинди","Венгерский","Исландский","Индонезийский","Ирландский","Итальянский","Японский","Казахский","Корейский","Латышский","Литовский","Македонский","Малайский","Мальтийский","Монгольский","Непальский","Норвежский","Персидский","Польский","Португальский","Панджаби","Румынский","Русский","Сербский","Словацкий","Словенский","Сомали","Испанский","Суахили","Шведский","Тамильский","Тайский","Турецкий","Украинский","Урду","Узбекский","Вьетнамский","Валлийский","Йоруба","Зулу"};
+    String[] q={"Choose the correct translation: «Привет»","Choose the correct phrase: «Я изучаю английский»","Choose the correct answer: «She ___ to school every day»","Choose the best sentence: «Если бы у меня было больше времени, я бы путешествовал»"};
+    String[][] opts={{"Hello","Goodbye","Thanks"},{"I study English","I studying English","I studies English"},{"go","goes","going"},{"If I had more time, I would travel","If I have more time, I traveled","If I would have time, I travel"}};
+    int[] answers={0,0,1,0};
+    @Override public void onCreate(Bundle b){super.onCreate(b);prefs=getSharedPreferences("lingo",MODE_PRIVATE);score=prefs.getInt("score",0);streak=prefs.getInt("streak",0);selected=prefs.getString("language","Английский");showWelcome();}
+    GradientDrawable shape(int c,int r){GradientDrawable d=new GradientDrawable();d.setColor(c);d.setCornerRadius(r);return d;}
+    TextView label(String s,int size,int color,boolean bold){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);if(bold)t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);return t;}
+    void init(String title){root=new LinearLayout(this);root.setOrientation(1);root.setPadding(22,26,22,20);root.setBackgroundColor(BG);ScrollView sc=new ScrollView(this);sc.addView(root);setContentView(sc);TextView brand=label("LINGO  •  "+title,16,0xffc6b5ff,true);root.addView(brand);space(18);}
+    void space(int h){View v=new View(this);root.addView(v,new LinearLayout.LayoutParams(1,h));}
+    void heading(String s){TextView t=label(s,27,WHITE,true);root.addView(t);space(8);}
+    void para(String s){TextView t=label(s,15,MUTED,false);root.addView(t);space(12);}
+    void card(String s,String sub,Runnable r){LinearLayout box=new LinearLayout(this);box.setOrientation(1);box.setPadding(16,14,16,14);box.setBackground(shape(CARD,24));TextView a=label(s,17,WHITE,true);box.addView(a);TextView b=label(sub,13,MUTED,false);box.addView(b);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.bottomMargin=10;root.addView(box,lp);box.setOnClickListener(v->r.run());}
+    void btn(String s,Runnable r){Button b=new Button(this);b.setText(s);b.setTextColor(WHITE);b.setAllCaps(false);b.setTextSize(15);b.setBackground(shape(PURPLE,32));LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.bottomMargin=10;root.addView(b,lp);b.setOnClickListener(v->r.run());}
+    void showWelcome(){page="welcome";init("LEARN • PRACTICE • IMPROVE");space(48);heading("Учи языки.\nМеняй свои возможности.");para("Твой ежедневный путь к новым знаниям.");btn("Продолжить как гость",()->showLanguages());btn("Выбрать язык",()->showLanguages());para("Гостевой прогресс сохраняется на этом устройстве.");}
+    void showLanguages(){page="languages";init("ВЫБОР ЯЗЫКА");heading("Какой язык изучаем?");para("Выбери язык. Для каждого языка будет отдельный уровень и прогресс.");EditText search=new EditText(this);search.setSingleLine(true);search.setHint("Поиск языка");search.setTextColor(WHITE);search.setHintTextColor(MUTED);search.setBackground(shape(CARD,18));root.addView(search);LinearLayout list=new LinearLayout(this);list.setOrientation(1);root.addView(list);Runnable refresh=()->{list.removeAllViews();String term=search.getText().toString().toLowerCase();for(String lang:languages)if(lang.toLowerCase().contains(term)){Button b=new Button(this);b.setText("🌐   "+lang);b.setTextColor(WHITE);b.setAllCaps(false);b.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);b.setBackground(shape(CARD,18));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.bottomMargin=6;list.addView(b,p);b.setOnClickListener(v->{selected=lang;prefs.edit().putString("language",lang).apply();showTestIntro();});}};search.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int st,int c,int a){}public void onTextChanged(CharSequence s,int st,int before,int count){refresh.run();}public void afterTextChanged(android.text.Editable e){}});refresh.run();}
+    void showTestIntro(){page="testintro";init("ВХОДНОЙ ТЕСТ");heading("Проверим твой уровень");para("Язык: "+selected+"\n4 вопроса возрастающей сложности: A1, A2, B1 и B2. Результат предварительный.");btn("Начать тест",()->{question=0;correct=0;showQuestion();});}
+    void showQuestion(){page="quiz";init("ВОПРОС "+(question+1)+" ИЗ 4");heading(q[question]);for(int i=0;i<3;i++){final int n=i;btn(opts[question][i],()->{if(n==answers[question])correct++;question++;if(question<4)showQuestion();else showResult();});}}
+    void showResult(){int level=Math.max(1,correct);String[] names={"","A1","A2","B1","B2"};prefs.edit().putInt("level_"+selected,level).apply();init("ТВОЙ РЕЗУЛЬТАТ");heading("Твой ориентировочный уровень: "+names[level]);para("Правильных ответов: "+correct+" из 4.\nЭто короткая диагностика, а не официальный сертификат.");btn("Перейти к обучению",()->showHome());}
+    void showHome(){page="home";init("ГЛАВНАЯ");heading("Продолжим обучение?");para("Изучаемый язык: "+selected);int lv=prefs.getInt("level_"+selected,1);String[] n={"","A1","A2","B1","B2","C1","C2"};card("🌍  "+selected+"  •  "+n[lv],"Твой текущий уровень",()->showLessons());card("▶  Продолжить урок","Слова, грамматика и практика",()->showLessons());card("🔥  Серия: "+streak+" дней","Возвращайся к занятиям каждый день",()->showProgress());card("⭐  "+score+" очков опыта","Твои достижения и прогресс",()->showProgress());card("🎙  Говорение","Разговорная практика — скоро появится",()->showComing());card("⚙  Настройки","Тема и параметры приложения",()->showSettings());btn("Выбрать другой язык",()->showLanguages());}
+    void showLessons(){page="lessons";init("ОБУЧЕНИЕ");heading("Практика языка");card("📖  Слова","Учить и повторять лексику",()->lesson("Слово: apple","Как переводится apple?","Яблоко","Груша","Дом",0));card("✍  Письмо","Письменные упражнения",()->lesson("Переведи: «Спасибо»","Выбери правильный вариант","Thank you","Good night","Please",0));card("🎧  Аудирование","Упражнения на понимание речи",()->showComing());card("🎙  Говорение","Голосовая практика",()->showComing());btn("Назад на главную",()->showHome());}
+    void lesson(String title,String question,String a,String b,String c,int answer){init("УРОК");heading(title);para(question);String[] choices={a,b,c};for(int i=0;i<3;i++){final int k=i;btn(choices[i],()->{if(k==answer){score+=10;prefs.edit().putInt("score",score).apply();new AlertDialog.Builder(this).setMessage("Верно! +10 XP").setPositiveButton("Продолжить",(d,w)->showLessons()).show();}else new AlertDialog.Builder(this).setMessage("Попробуй ещё раз. Подсказка: подумай о значении слова.").setPositiveButton("Понятно",null).show();});}}
+    void showProgress(){init("ПРОГРЕСС");heading("Твой путь");para("Язык: "+selected+"\nОчки опыта: "+score+"\nСерия дней: "+streak+"\nУровень: "+new String[]{"","A1","A2","B1","B2","C1","C2"}[prefs.getInt("level_"+selected,1)]);card("🏆 Награды","Награды за подтверждённые уровни A1–C2",()->showComing());btn("На главную",()->showHome());}
+    void showSettings(){init("НАСТРОЙКИ");heading("Настройки");card("🌙 Тема","В этой стартовой сборке используется тёмная тема",()->{});btn("Назад",()->showHome());}
+    void showComing(){new AlertDialog.Builder(this).setTitle("LINGO").setMessage("Этот раздел запланирован, но ещё не реализован в стартовой версии.").setPositiveButton("Понятно",null).show();}
+}
